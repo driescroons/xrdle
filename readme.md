@@ -1,0 +1,1 @@
+- be able to type as well? for browser functionality?
