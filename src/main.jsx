@@ -11,7 +11,7 @@ function Input() {
       <h1>XRDLE</h1>
       <span>A shittier version of Wordle, but in VR.</span>
       <br />
-      <span>Play the original version of <a href="https://wordle.com">Wordle here</a>.</span>
+      <span>Play the original version of <a href="https://www.powerlanguage.co.uk/wordle">Wordle here</a>.</span>
       <br />
       <br />
       <div>
