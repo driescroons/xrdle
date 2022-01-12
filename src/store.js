@@ -4,8 +4,6 @@ import produce from 'immer'
 export const answers = ['fancy', 'woody', 'spelt', 'comet', 'drone', 'scarf']
 
 export const useStore = create(set => ({
-    // draft: '',
-    // guess: null,
     guesses: [],
     answer: answers[Math.floor(Math.random() * answers.length)],
     reset: () => {

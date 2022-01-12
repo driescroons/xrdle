@@ -9,14 +9,15 @@ function Input() {
   return (
     <div style={{position: 'fixed', color: 'white', zIndex: 1, padding: '10px'}}>
       <h1>XRDLE</h1>
-      <span>A shittier version of Wordle, but in XR. Soon...</span>
+      <span>A shittier version of Wordle, but in VR.</span>
       <br />
       <span>Play the original version of <a href="https://wordle.com">Wordle here</a>.</span>
+      <br />
+      <br />
       <div>
         <button onClick={() => {
           reset();
-        }}>Reset</button>
-        <button onClick={() => {}}>Enter VR</button>
+        }}>Reset puzzle</button>
         </div>
     </div>
   )
