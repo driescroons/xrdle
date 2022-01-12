@@ -1,6 +1,6 @@
 import { RoundedBox, Text } from "@react-three/drei";
-import { useFrame, useThree } from "@react-three/fiber";
-import { Interactive, RayGrab, useXREvent } from "@react-three/xr";
+import { useFrame } from "@react-three/fiber";
+import { Interactive, RayGrab, useXR, useXREvent } from "@react-three/xr";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { DoubleSide, Vector3 } from "three";
 import { useStore } from "./store";
@@ -17,7 +17,7 @@ export function Keyboard({position = [0, 0, 0]}) {
     const ref = useRef();
     
     const [hovered, setHovered] = useState(false);
-    const {isPresenting} = useThree();
+    const {isPresenting} = useXR();
 
     const set = useStore(store => store.set);
     const guesses = useStore(store => store.guesses);
