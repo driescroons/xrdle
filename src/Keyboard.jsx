@@ -11,7 +11,7 @@ const rows = [
     'zxcvbnm'
 ];
 
-const keyDimension = 0.01;
+const keyDimension = 0.02;
 
 export function Keyboard({position = [0, 0, 0]}) {
     const ref = useRef();
@@ -22,6 +22,7 @@ export function Keyboard({position = [0, 0, 0]}) {
     const set = useStore(store => store.set);
     const guesses = useStore(store => store.guesses);
     const answer = useStore(store => store.answer);
+    const reset = useStore(store => store.reset);
 
     const incorrect = useMemo(() => guesses.length > 0 ? [...guesses].slice(0, -1).reduce((list, guess) => {
         list.push(...guess);
@@ -39,6 +40,14 @@ export function Keyboard({position = [0, 0, 0]}) {
           previousTransform.current = undefined
         }
     })
+
+    useEffect(() => {
+        const guess = guesses.at(-1)
+        if (guesses.find(guess => guess === answer)) {
+            // We should also quit the game
+            setTimeout(() => reset(), 1000);
+        }
+    }, [guesses, answer])
     
     useFrame(() => {
         if (!grabbingController.current || !previousTransform.current || !groupRef.current) {
@@ -86,13 +95,13 @@ export function Keyboard({position = [0, 0, 0]}) {
                 ))}
         
                 <group>
-                    <Key label="UNDO" width={0.018} position={[0.050, -keyDimension * 1.15, 0]} onClick={() => {
+                    <Key label="UNDO" width={0.032} position={[0.098, -keyDimension * 1.15, 0]} onClick={() => {
                         set(store => {
                             const newGuess = store.guesses[store.guesses.length - 1].slice(0, -1);
                             store.guesses[store.guesses.length - 1] = newGuess;
                         })
                     }} hoveringRef={hoveringRef}/>
-                    <Key label="GUESS"  width={0.018} position={[-0.050, -keyDimension * 1.15, 0]} disabled={guesses[guesses.length - 1]?.length !== answer.length} onClick={() => {
+                    <Key label="GUESS"  width={0.032} position={[-0.098, -keyDimension * 1.15, 0]} disabled={guesses[guesses.length - 1]?.length !== answer.length} onClick={() => {
                             const guess = guesses.at(-1);
     
                             // these need to be disabled on keyboard insert
@@ -101,17 +110,13 @@ export function Keyboard({position = [0, 0, 0]}) {
                                 return;
                             }
                             
-                            if (guess === answer) {
-                                console.log('You win!');
-                            }
-
                             set(store => {
                                 store.guesses.push('');
                             })
                     }} hoveringRef={hoveringRef} />
                 </group>
 
-                <RoundedBox args={[0.125, 0.04, 0]} position={[0, 0, -0.01]} radius={0.001} smoothness={4} onHover={() => setHovered(true)} onBlur={() => setHovered(false)}>
+                <RoundedBox args={[0.26, 0.085, 0.01]} position={[0, 0, -0.01]} radius={0.001} smoothness={4} onHover={() => setHovered(true)} onBlur={() => setHovered(false)}>
                     <meshStandardMaterial attach="material" color={hovered ? 'red' : '#d4d4d4'} side={DoubleSide} />
                 </RoundedBox>
             </group>
@@ -119,7 +124,7 @@ export function Keyboard({position = [0, 0, 0]}) {
     ) : null;
 }
 
-function Key({label, width = 0.01, height = 0.01, position = [0, 0, 0], fontSize = 0.005, disabled = false, onClick = () => null, hoveringRef = useRef()}) {
+function Key({label, width = keyDimension, height = keyDimension, position = [0, 0, 0], fontSize = 0.005, disabled = false, onClick = () => null, hoveringRef = useRef()}) {
     const [hovered, setHovered] = useState(false);
 
     return (

@@ -13,6 +13,8 @@ function Input() {
       <br />
       <span>Play the original version of <a href="https://www.powerlanguage.co.uk/wordle">Wordle here</a>.</span>
       <br />
+      <span>Want to get into WebXR development? Checkout the <a href="https://github.com/driescroons/xrdle">source here</a>.</span>
+      <br />
       <br />
       <div>
         <button onClick={() => {
