@@ -1,8 +1,9 @@
 import { RoundedBox, Text } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { Interactive, RayGrab, useXR, useXREvent } from "@react-three/xr";
+import { Interactive, useController, useXR, useXREvent } from "@react-three/xr";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { DoubleSide, Vector3 } from "three";
+import { rowsAmount } from "./constants";
 import { useStore } from "./store";
 
 const rows = ["qwertyuiop", "asdfghjkl", "zxcvbnm"];
@@ -37,7 +38,6 @@ export function Keyboard({ position = [0, 0, 0] }) {
   const grabbingController = useRef();
   const groupRef = useRef();
   const previousTransform = useRef(undefined);
-  const hoveringRef = useRef();
 
   useXREvent("selectend", (e) => {
     if (e.controller.controller === grabbingController.current) {
@@ -50,6 +50,10 @@ export function Keyboard({ position = [0, 0, 0] }) {
     const guess = guesses.at(-1);
     if (guesses.find((guess) => guess === answer)) {
       // We should also quit the game
+      setTimeout(() => reset(), 1000);
+    }
+
+    if (guesses.length - 1 === rowsAmount) {
       setTimeout(() => reset(), 1000);
     }
   }, [guesses, answer]);
@@ -73,11 +77,13 @@ export function Keyboard({ position = [0, 0, 0] }) {
     previousTransform.current = controller.matrixWorld.clone().invert();
   });
 
+  const keyboard = useStore((store) => store.keyboard);
+
   return isPresenting ? (
     <Interactive
       ref={groupRef}
       onSelectStart={(e) => {
-        if (!hoveringRef.current) {
+        if (!Object.values(keyboard).includes(true)) {
           grabbingController.current = e.controller.controller;
           previousTransform.current = e.controller.controller.matrixWorld
             .clone()
@@ -101,7 +107,6 @@ export function Keyboard({ position = [0, 0, 0] }) {
                     1.15,
                   0,
                 ]}
-                hoveringRef={hoveringRef}
                 disabled={incorrect.includes(letter)}
                 onClick={() => {
                   set((store) => {
@@ -136,7 +141,6 @@ export function Keyboard({ position = [0, 0, 0] }) {
                 store.guesses[store.guesses.length - 1] = newGuess;
               });
             }}
-            hoveringRef={hoveringRef}
           />
           <Key
             label="GUESS"
@@ -158,7 +162,6 @@ export function Keyboard({ position = [0, 0, 0] }) {
                 store.guesses.push("");
               });
             }}
-            hoveringRef={hoveringRef}
           />
         </group>
 
@@ -189,9 +192,9 @@ function Key({
   fontSize = 0.005,
   disabled = false,
   onClick = () => null,
-  hoveringRef = useRef(),
 }) {
   const [hovered, setHovered] = useState(false);
+  const set = useStore((store) => store.set);
 
   return (
     <Interactive
@@ -199,12 +202,16 @@ function Key({
         !disabled && onClick();
       }}
       onHover={() => {
+        set((store) => {
+          store.keyboard[label] = true;
+        });
         setHovered(true);
-        hoveringRef.current = true;
       }}
       onBlur={() => {
+        set((store) => {
+          store.keyboard[label] = false;
+        });
         setHovered(false);
-        hoveringRef.current = false;
       }}
     >
       <group position={position}>

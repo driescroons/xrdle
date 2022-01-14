@@ -4,7 +4,7 @@ import { Level } from "./Level";
 import { useStore } from "./store";
 
 function App() {
-  const set = useStore((stoer) => stoer.set);
+  const set = useStore((store) => store.set);
 
   if (process.env.NODE_ENV === "development") {
     window.addGuess = (guess) => {
