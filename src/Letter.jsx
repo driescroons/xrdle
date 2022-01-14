@@ -1,6 +1,7 @@
 import { RoundedBox, Text } from "@react-three/drei";
 import { DoubleSide } from "three";
 import { boxDimensions, colors } from "./constants";
+import font from "./assets/OpenSans-ExtraBold.ttf";
 
 export default function Letter({
   label,
@@ -17,6 +18,7 @@ export default function Letter({
           anchorY="middle"
           fontSize={0.1}
           position={[0, 0, 0.001]}
+          font={font}
         >
           {`${label}`.toUpperCase()}
         </Text>

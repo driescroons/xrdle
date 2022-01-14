@@ -7,6 +7,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-spring/three": "^9.4.2",
     "@react-three/drei": "^8.4.0",
     "@react-three/fiber": "^7.0.24",
     "@react-three/xr": "^3.2.0",
@@ -14,6 +15,7 @@
     "immer": "^9.0.7",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "react-spring": "^9.4.2",
     "three": "^0.136.0",
     "zustand": "^3.6.9"
   },

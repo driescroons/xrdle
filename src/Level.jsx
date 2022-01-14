@@ -28,7 +28,7 @@ export function Level() {
               -row * boxDimensions * 1.2,
               0,
             ]}
-            fontColor={row !== guesses.length - 1 ? "black" : "white"}
+            fontColor={"black"}
             color={
               row !== guesses.length - 1 && guesses[row]?.[letter]
                 ? answer[letter] === guesses[row][letter]

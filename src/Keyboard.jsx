@@ -5,6 +5,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { DoubleSide, Vector3 } from "three";
 import { rowsAmount } from "./constants";
 import { useStore } from "./store";
+import font from "./assets/OpenSans-ExtraBold.ttf";
+import { useSpring, a, easings } from "@react-spring/three";
 
 const rows = ["qwertyuiop", "asdfghjkl", "zxcvbnm"];
 
@@ -20,6 +22,28 @@ export function Keyboard({ position = [0, 0, 0] }) {
   const guesses = useStore((store) => store.guesses);
   const answer = useStore((store) => store.answer);
   const reset = useStore((store) => store.reset);
+  const keyboard = useStore((store) => store.keyboard);
+
+  const [spring, springRef] = useSpring(
+    () => ({
+      color:
+        hovered && !Object.values(keyboard).includes(true)
+          ? "#a1a1a1"
+          : "#d4d4d4",
+      config: {
+        duration: 500,
+        easing: easings.easeInExpo,
+      },
+    }),
+    [hovered, keyboard]
+  );
+
+  useEffect(() => {
+    if (Object.values(keyboard).includes(true)) {
+      console.log(spring);
+      springRef.set({ color: "#d4d4d4" });
+    }
+  }, [keyboard]);
 
   const incorrect = useMemo(
     () =>
@@ -77,8 +101,6 @@ export function Keyboard({ position = [0, 0, 0] }) {
     previousTransform.current = controller.matrixWorld.clone().invert();
   });
 
-  const keyboard = useStore((store) => store.keyboard);
-
   return isPresenting ? (
     <Interactive
       ref={groupRef}
@@ -130,8 +152,8 @@ export function Keyboard({ position = [0, 0, 0] }) {
         <group>
           <Key
             label="UNDO"
-            width={0.032}
-            position={[0.098, -keyDimension * 1.15, 0]}
+            width={0.038}
+            position={[0.101, -keyDimension * 1.15, 0]}
             onClick={() => {
               set((store) => {
                 const newGuess = store.guesses[store.guesses.length - 1].slice(
@@ -144,8 +166,8 @@ export function Keyboard({ position = [0, 0, 0] }) {
           />
           <Key
             label="GUESS"
-            width={0.032}
-            position={[-0.098, -keyDimension * 1.15, 0]}
+            width={0.038}
+            position={[-0.101, -keyDimension * 1.15, 0]}
             disabled={guesses[guesses.length - 1]?.length !== answer.length}
             onClick={() => {
               const guess = guesses.at(-1);
@@ -165,20 +187,25 @@ export function Keyboard({ position = [0, 0, 0] }) {
           />
         </group>
 
-        <RoundedBox
-          args={[0.26, 0.085, 0.01]}
-          position={[0, 0, -0.01]}
-          radius={0.001}
-          smoothness={4}
-          onHover={() => setHovered(true)}
+        <Interactive
+          onHover={() => {
+            setHovered(true);
+          }}
           onBlur={() => setHovered(false)}
         >
-          <meshStandardMaterial
-            attach="material"
-            color={hovered ? "red" : "#d4d4d4"}
-            side={DoubleSide}
-          />
-        </RoundedBox>
+          <RoundedBox
+            args={[0.26, 0.085, 0.01]}
+            position={[0, 0, -0.01]}
+            radius={0.001}
+            smoothness={4}
+          >
+            <a.meshStandardMaterial
+              attach="material"
+              color={spring.color}
+              side={DoubleSide}
+            />
+          </RoundedBox>
+        </Interactive>
       </group>
     </Interactive>
   ) : null;
@@ -189,12 +216,15 @@ function Key({
   width = keyDimension,
   height = keyDimension,
   position = [0, 0, 0],
-  fontSize = 0.005,
+  fontSize = 0.01,
   disabled = false,
   onClick = () => null,
 }) {
   const [hovered, setHovered] = useState(false);
   const set = useStore((store) => store.set);
+  const spring = useSpring({
+    color: disabled ? "black" : hovered ? "#2e2e2e" : "#6b6b6b",
+  });
 
   return (
     <Interactive
@@ -216,10 +246,7 @@ function Key({
     >
       <group position={position}>
         <RoundedBox args={[width, height, 0]} radius={0.001} smoothness={4}>
-          <meshStandardMaterial
-            color={disabled ? "black" : hovered ? "#2e2e2e" : "#6b6b6b"}
-            side={DoubleSide}
-          />
+          <a.meshStandardMaterial color={spring.color} side={DoubleSide} />
         </RoundedBox>
 
         <Text
@@ -228,6 +255,7 @@ function Key({
           anchorY="middle"
           fontSize={fontSize}
           position={[0, 0, 0.001]}
+          font={font}
         >
           {label.toUpperCase()}
         </Text>
