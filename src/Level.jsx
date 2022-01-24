@@ -48,9 +48,9 @@ export function Level() {
   return (
     <group
       position={[
-        (-letterAmount / 2) * letterDimensions[0] * letterPadding,
+        (-(letterAmount - 1) / 2) * letterDimensions[0] * letterPadding,
         (isPresenting ? 1.6 : 0) +
-          (rowAmount / 2) * letterDimensions[1] * letterPadding,
+          ((rowAmount - 1) / 2) * letterDimensions[1] * letterPadding,
         -2,
       ]}
     >
