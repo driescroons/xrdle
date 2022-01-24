@@ -4,7 +4,7 @@ import "./index.css";
 import App from "./App";
 import { useStore } from "./store";
 
-function Input() {
+function Overlay() {
   const reset = useStore((store) => store.reset);
   return (
     <div
@@ -39,7 +39,7 @@ function Input() {
 
 ReactDOM.render(
   <React.StrictMode>
-    <Input />
+    <Overlay />
     <App />
   </React.StrictMode>,
   document.getElementById("root")

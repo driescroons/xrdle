@@ -4,13 +4,12 @@ import produce from "immer";
 export const answers = ["fancy", "woody", "spelt", "comet", "drone", "scarf"];
 
 export const useStore = create((set) => ({
-  guesses: [],
+  guesses: [''],
   answer: answers[Math.floor(Math.random() * answers.length)],
-  keyboard: {},
   reset: () => {
     set((state) =>
       produce(state, (draft) => {
-        draft.guesses = [];
+        draft.guesses = [''];
         draft.answer = answers[Math.floor(Math.random() * answers.length)];
       })
     );

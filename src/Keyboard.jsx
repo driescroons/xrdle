@@ -1,54 +1,35 @@
-import { RoundedBox, Text } from "@react-three/drei";
+import { RoundedBox } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { Interactive, useController, useXR, useXREvent } from "@react-three/xr";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { DoubleSide, Vector3 } from "three";
-import { rowsAmount } from "./constants";
+import { Interactive, useXR, useXREvent } from "@react-three/xr";
+import { useEffect, useMemo, useRef } from "react";
+import { DoubleSide } from "three";
+import {
+  colors,
+  keyboardDimensions,
+  keyDimensions,
+  keyPadding,
+  letterAmount,
+  resetTime,
+  rowAmount,
+  rows,
+} from "./constants";
 import { useStore } from "./store";
-import font from "./assets/OpenSans-ExtraBold.ttf";
-import { useSpring, a, easings } from "@react-spring/three";
 
-const rows = ["qwertyuiop", "asdfghjkl", "zxcvbnm"];
+import Key from "./Key";
 
-const keyDimension = 0.02;
-
-export function Keyboard({ position = [0, 0, 0] }) {
-  const ref = useRef();
-
-  const [hovered, setHovered] = useState(false);
-  const { isPresenting } = useXR();
+export function Keyboard() {
+  const { isPresenting, hoverState } = useXR();
 
   const set = useStore((store) => store.set);
   const guesses = useStore((store) => store.guesses);
   const answer = useStore((store) => store.answer);
   const reset = useStore((store) => store.reset);
-  const keyboard = useStore((store) => store.keyboard);
-
-  const [spring, springRef] = useSpring(
-    () => ({
-      color:
-        hovered && !Object.values(keyboard).includes(true)
-          ? "#a1a1a1"
-          : "#d4d4d4",
-      config: {
-        duration: 500,
-        easing: easings.easeInExpo,
-      },
-    }),
-    [hovered, keyboard]
-  );
-
-  useEffect(() => {
-    if (Object.values(keyboard).includes(true)) {
-      console.log(spring);
-      springRef.set({ color: "#d4d4d4" });
-    }
-  }, [keyboard]);
 
   const incorrect = useMemo(
     () =>
       guesses.length > 0
         ? [...guesses]
+            // all guesses except the one we're currently editing
             .slice(0, -1)
             .reduce((list, guess) => {
               list.push(...guess);
@@ -61,6 +42,7 @@ export function Keyboard({ position = [0, 0, 0] }) {
 
   const grabbingController = useRef();
   const groupRef = useRef();
+  const meshRef = useRef();
   const previousTransform = useRef(undefined);
 
   useXREvent("selectend", (e) => {
@@ -74,11 +56,11 @@ export function Keyboard({ position = [0, 0, 0] }) {
     const guess = guesses.at(-1);
     if (guesses.find((guess) => guess === answer)) {
       // We should also quit the game
-      setTimeout(() => reset(), 1000);
+      setTimeout(() => reset(), resetTime);
     }
 
-    if (guesses.length - 1 === rowsAmount) {
-      setTimeout(() => reset(), 1000);
+    if (guesses.length - 1 === rowAmount) {
+      setTimeout(() => reset(), resetTime);
     }
   }, [guesses, answer]);
 
@@ -105,7 +87,11 @@ export function Keyboard({ position = [0, 0, 0] }) {
     <Interactive
       ref={groupRef}
       onSelectStart={(e) => {
-        if (!Object.values(keyboard).includes(true)) {
+        if (
+          Array.from(hoverState[e.controller.inputSource.handedness]).sort(
+            (a, b) => a[1].distance - b[1].distance
+          )[0][0].uuid === meshRef.current.uuid
+        ) {
           grabbingController.current = e.controller.controller;
           previousTransform.current = e.controller.controller.matrixWorld
             .clone()
@@ -113,65 +99,74 @@ export function Keyboard({ position = [0, 0, 0] }) {
         }
       }}
     >
-      <group ref={ref} position={position}>
-        {rows.map((row, rowIndex) => (
-          <group key={rowIndex} position={[0, 0, 0]}>
-            {row.split("").map((letter, letterIndex, letters) => (
-              <Key
-                label={letter}
-                key={letterIndex}
-                position={[
-                  (letterIndex * keyDimension -
-                    ((letters.length - 1) / 2) * keyDimension) *
-                    1.15,
-                  (-rowIndex * keyDimension +
-                    ((rows.length - 1) / 2) * keyDimension) *
-                    1.15,
-                  0,
-                ]}
-                disabled={incorrect.includes(letter)}
-                onClick={() => {
-                  set((store) => {
-                    if (store.guesses.length > 0) {
-                      const lastGuess = store.guesses[store.guesses.length - 1];
-                      if (lastGuess.length < store.answer.length) {
+      <group position={[0, isPresenting ? 1.3 : 0, -0.3]}>
+        <group position={[0, 0, keyboardDimensions[2] / 2]}>
+          {rows.map((row, rowIndex) => (
+            <group key={rowIndex}>
+              {row.split("").map((letter, letterIndex, letters) => (
+                <Key
+                  label={letter}
+                  key={letterIndex}
+                  position={[
+                    letterIndex * keyDimensions[0] * keyPadding -
+                      ((row.length - 1) * keyDimensions[0] * keyPadding) / 2,
+                    -rowIndex * keyDimensions[1] * keyPadding +
+                      ((rows.length - 1) * keyDimensions[1] * keyPadding) / 2,
+                    0,
+                  ]}
+                  disabled={incorrect.includes(letter)}
+                  onClick={() => {
+                    set((store) => {
+                      const lastGuess = store.guesses.at(-1);
+                      if (lastGuess.length < letterAmount) {
                         store.guesses[
                           store.guesses.length - 1
                         ] = `${lastGuess}${letter}`;
                       }
-                    } else {
-                      store.guesses[0] = `${letter}`;
-                    }
-                  });
-                }}
-              />
-            ))}
-          </group>
-        ))}
-
-        <group>
+                    });
+                  }}
+                />
+              ))}
+            </group>
+          ))}
           <Key
             label="UNDO"
-            width={0.038}
-            position={[0.101, -keyDimension * 1.15, 0]}
+            dimensions={[
+              keyDimensions[0] * 2.8,
+              keyDimensions[1],
+              keyDimensions[2],
+            ]}
+            position={[
+              (-(rows[2].length + 1) * keyDimensions[0] * keyPadding) / 2 -
+                keyDimensions[0],
+              -keyDimensions[1] * keyPadding,
+              0,
+            ]}
             onClick={() => {
               set((store) => {
-                const newGuess = store.guesses[store.guesses.length - 1].slice(
-                  0,
-                  -1
-                );
+                const newGuess = store.guesses.at(-1).slice(0, -1);
                 store.guesses[store.guesses.length - 1] = newGuess;
               });
             }}
           />
           <Key
             label="GUESS"
-            width={0.038}
-            position={[-0.101, -keyDimension * 1.15, 0]}
+            dimensions={[
+              keyDimensions[0] * 2.8,
+              keyDimensions[1],
+              keyDimensions[2],
+            ]}
+            position={[
+              ((rows[2].length + 1) * keyDimensions[0] * keyPadding) / 2 +
+                keyDimensions[0],
+              -keyDimensions[1] * keyPadding,
+              0,
+            ]}
             disabled={guesses[guesses.length - 1]?.length !== answer.length}
             onClick={() => {
               const guess = guesses.at(-1);
 
+              // extra check, but keys should be disabled
               // these need to be disabled on keyboard insert
               if (
                 guess.split("").find((letter) => incorrect.includes(letter))
@@ -186,80 +181,15 @@ export function Keyboard({ position = [0, 0, 0] }) {
             }}
           />
         </group>
-
-        <Interactive
-          onHover={() => {
-            setHovered(true);
-          }}
-          onBlur={() => setHovered(false)}
+        <RoundedBox
+          args={keyboardDimensions}
+          radius={0.001}
+          smoothness={4}
+          ref={meshRef}
         >
-          <RoundedBox
-            args={[0.26, 0.085, 0.01]}
-            position={[0, 0, -0.01]}
-            radius={0.001}
-            smoothness={4}
-          >
-            <a.meshStandardMaterial
-              attach="material"
-              color={spring.color}
-              side={DoubleSide}
-            />
-          </RoundedBox>
-        </Interactive>
+          <meshPhongMaterial color={colors.lightgrey} side={DoubleSide} />
+        </RoundedBox>
       </group>
     </Interactive>
   ) : null;
-}
-
-function Key({
-  label,
-  width = keyDimension,
-  height = keyDimension,
-  position = [0, 0, 0],
-  fontSize = 0.01,
-  disabled = false,
-  onClick = () => null,
-}) {
-  const [hovered, setHovered] = useState(false);
-  const set = useStore((store) => store.set);
-  const spring = useSpring({
-    color: disabled ? "black" : hovered ? "#2e2e2e" : "#6b6b6b",
-  });
-
-  return (
-    <Interactive
-      onSelect={() => {
-        !disabled && onClick();
-      }}
-      onHover={() => {
-        set((store) => {
-          store.keyboard[label] = true;
-        });
-        setHovered(true);
-      }}
-      onBlur={() => {
-        set((store) => {
-          store.keyboard[label] = false;
-        });
-        setHovered(false);
-      }}
-    >
-      <group position={position}>
-        <RoundedBox args={[width, height, 0]} radius={0.001} smoothness={4}>
-          <a.meshStandardMaterial color={spring.color} side={DoubleSide} />
-        </RoundedBox>
-
-        <Text
-          color="white"
-          anchorX="center"
-          anchorY="middle"
-          fontSize={fontSize}
-          position={[0, 0, 0.001]}
-          font={font}
-        >
-          {label.toUpperCase()}
-        </Text>
-      </group>
-    </Interactive>
-  );
 }

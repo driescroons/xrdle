@@ -3,19 +3,20 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "vite",
+    "dev:hmd": "vite --host --https",
     "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
     "@react-spring/three": "^9.4.2",
-    "@react-three/drei": "^8.4.0",
-    "@react-three/fiber": "^7.0.24",
+    "@react-three/drei": "^8.6.3",
+    "@react-three/fiber": "^7.0.25",
     "@react-three/xr": "^3.2.0",
     "@types/three": "^0.136.1",
-    "immer": "^9.0.7",
+    "immer": "^9.0.12",
+    "leva": "^0.9.18",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "react-spring": "^9.4.2",
     "three": "^0.136.0",
     "zustand": "^3.6.9"
   },
